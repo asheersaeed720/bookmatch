@@ -28,12 +28,24 @@
     @endif
 
     {{-- Page header --}}
-    <div class="bg-gradient-to-r from-indigo-900 to-indigo-800 py-10">
+    <div class="border-b border-gray-200 bg-white py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-extrabold text-white">My Bookmarks</h1>
-            <p class="text-indigo-300 mt-1 text-sm">
-                {{ $bookmarks->total() }} {{ Str::plural('book', $bookmarks->total()) }} saved
-            </p>
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+                    <svg class="h-5 w-5 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0
+                                 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900">My Bookmarks</h1>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        {{ $bookmarks->total() }} {{ Str::plural('book', $bookmarks->total()) }} saved
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 

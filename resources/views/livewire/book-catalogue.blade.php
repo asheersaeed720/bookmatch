@@ -69,6 +69,20 @@
                     <option value="rating">Highest Rated</option>
                 </select>
 
+                {{-- Active filters clear pill --}}
+                @if($search || $genre || $minRating > 0)
+                <button
+                    wire:click="clearFilters"
+                    class="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50
+                           px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 transition-colors"
+                >
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Clear filters
+                </button>
+                @endif
+
                 {{-- Loading indicator --}}
                 <div wire:loading class="shrink-0 flex items-center gap-1.5 text-indigo-600">
                     <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

@@ -4,13 +4,24 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                    <a href="{{ route('home') }}" class="flex items-center gap-2 shrink-0">
+                        <svg class="h-7 w-7 text-indigo-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0
+                                     016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18
+                                     3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                        </svg>
+                        <span class="text-base font-bold tracking-tight">
+                            <span class="text-gray-900">Book</span><span class="text-amber-600">Match</span>
+                        </span>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                        {{ __('Home') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('books.index')" :active="request()->routeIs('books.*')">
                         {{ __('Books') }}
                     </x-nav-link>
@@ -21,6 +32,18 @@
                     <x-nav-link :href="route('bookmarks.index')" :active="request()->routeIs('bookmarks.*')">
                         {{ __('Bookmarks') }}
                     </x-nav-link>
+                    @if(auth()->user()->isAdmin() || auth()->user()->isLibrarian())
+                    <a href="/admin"
+                       class="inline-flex items-center gap-1 px-1 pt-1 text-sm font-medium text-amber-600 hover:text-amber-800
+                              border-b-2 border-transparent hover:border-amber-400 transition-colors duration-150">
+                        Admin
+                        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0
+                                     0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                        </svg>
+                    </a>
+                    @endif
                     @endauth
                 </div>
             </div>
@@ -75,6 +98,9 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                {{ __('Home') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('books.index')" :active="request()->routeIs('books.*')">
                 {{ __('Books') }}
             </x-responsive-nav-link>
@@ -85,6 +111,20 @@
             <x-responsive-nav-link :href="route('bookmarks.index')" :active="request()->routeIs('bookmarks.*')">
                 {{ __('Bookmarks') }}
             </x-responsive-nav-link>
+            @if(auth()->user()->isAdmin() || auth()->user()->isLibrarian())
+            <a href="/admin"
+               class="flex items-center gap-2 w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-start
+                      text-base font-medium text-amber-600 hover:text-amber-800 hover:bg-gray-50
+                      hover:border-amber-400 focus:outline-none focus:text-amber-800 focus:bg-gray-50
+                      focus:border-amber-400 transition duration-150 ease-in-out">
+                Admin
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0
+                             0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                </svg>
+            </a>
+            @endif
             @endauth
         </div>
 

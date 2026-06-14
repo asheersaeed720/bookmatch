@@ -28,6 +28,57 @@
         </div>
     </section>
 
+    {{-- Features strip --}}
+    <div class="border-b border-gray-100 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+
+                <div class="flex flex-col items-center gap-3">
+                    <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Browse &amp; Discover</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Search thousands of titles across all genres</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-3">
+                    <div class="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0
+                                     016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18
+                                     3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Borrow in Seconds</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Check availability and borrow from your account</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-3">
+                    <div class="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-rose-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5
+                                     0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5
+                                     0 00-3.09 3.09z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Personalised Picks</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Daily recommendations tailored to your tastes</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     {{-- Trending This Week --}}
     @if($trending->isNotEmpty())
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -87,7 +138,7 @@
     @endif
 
     {{-- New Arrivals --}}
-    <section class="bg-gray-50 py-16">
+    <section class="bg-slate-50 py-16 border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-end justify-between mb-8">
                 <div>

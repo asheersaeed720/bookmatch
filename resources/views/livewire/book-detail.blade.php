@@ -27,24 +27,20 @@
     </div>
     @endif
 
-    {{-- Page header --}}
-    <div class="bg-gradient-to-r from-indigo-900 to-indigo-800 py-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex items-center gap-2 text-sm text-indigo-300 mb-3">
-                <a href="{{ route('home') }}" class="hover:text-white transition-colors">Home</a>
-                <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-                <a href="{{ route('books.index') }}" class="hover:text-white transition-colors">Catalogue</a>
-                <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-                <span class="text-white font-medium truncate">{{ $book->title }}</span>
-            </nav>
-        </div>
-    </div>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {{-- Breadcrumb --}}
+        <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+            <a href="{{ route('home') }}" class="hover:text-gray-600 transition-colors">Home</a>
+            <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+            <a href="{{ route('books.index') }}" class="hover:text-gray-600 transition-colors">Catalogue</a>
+            <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+            <span class="text-gray-600 font-medium truncate">{{ $book->title }}</span>
+        </nav>
 
         {{-- ── Book detail card ─────────────────────────────────── --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
@@ -52,7 +48,7 @@
 
                 {{-- Cover image --}}
                 <div class="shrink-0 mx-auto sm:mx-0">
-                    <div class="w-40 h-56 rounded-xl overflow-hidden shadow-md bg-gray-100">
+                    <div class="w-44 h-64 sm:w-52 rounded-xl overflow-hidden shadow-md bg-gray-100" style="height: clamp(16rem, 22vw, 22rem)">
                         @if($book->cover_image)
                             <img
                                 src="{{ Storage::url($book->cover_image) }}"
