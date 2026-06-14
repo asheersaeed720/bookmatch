@@ -144,7 +144,7 @@
                         <div class="aspect-[2/3] overflow-hidden bg-gray-100">
                             @if($rec->book->cover_image)
                                 <img
-                                    src="{{ Storage::url($rec->book->cover_image) }}"
+                                    src="{{ Storage::disk('public')->url($rec->book->cover_image) }}"
                                     alt="{{ $rec->book->title }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 >

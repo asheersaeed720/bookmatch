@@ -51,7 +51,7 @@
                     <div class="w-44 h-64 sm:w-52 rounded-xl overflow-hidden shadow-md bg-gray-100" style="height: clamp(16rem, 22vw, 22rem)">
                         @if($book->cover_image)
                             <img
-                                src="{{ Storage::url($book->cover_image) }}"
+                                src="{{ Storage::disk('public')->url($book->cover_image) }}"
                                 alt="{{ $book->title }}"
                                 class="w-full h-full object-cover"
                             >

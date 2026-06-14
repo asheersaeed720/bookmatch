@@ -106,7 +106,7 @@
                     <a href="{{ route('books.show', $book) }}" class="block aspect-[2/3] overflow-hidden bg-gray-100 shrink-0">
                         @if($book->cover_image)
                             <img
-                                src="{{ Storage::url($book->cover_image) }}"
+                                src="{{ Storage::disk('public')->url($book->cover_image) }}"
                                 alt="{{ $book->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             >
