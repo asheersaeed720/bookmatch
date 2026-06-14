@@ -43,17 +43,19 @@
     39 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
     40 => 'Laravel\\Pail\\PailServiceProvider',
     41 => 'Laravel\\Pao\\Laravel\\ServiceProvider',
-    42 => 'Laravel\\Roster\\RosterServiceProvider',
-    43 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    44 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    45 => 'Livewire\\LivewireServiceProvider',
-    46 => 'Carbon\\Laravel\\ServiceProvider',
-    47 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    48 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    49 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    50 => 'Spatie\\Permission\\PermissionServiceProvider',
-    51 => 'App\\Providers\\AppServiceProvider',
-    52 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    42 => 'Laravel\\Reverb\\ApplicationManagerServiceProvider',
+    43 => 'Laravel\\Reverb\\ReverbServiceProvider',
+    44 => 'Laravel\\Roster\\RosterServiceProvider',
+    45 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    46 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    47 => 'Livewire\\LivewireServiceProvider',
+    48 => 'Carbon\\Laravel\\ServiceProvider',
+    49 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    50 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    51 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
+    52 => 'Spatie\\Permission\\PermissionServiceProvider',
+    53 => 'App\\Providers\\AppServiceProvider',
+    54 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'eager' => 
   array (
@@ -85,16 +87,17 @@
     25 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
     26 => 'Laravel\\Pail\\PailServiceProvider',
     27 => 'Laravel\\Pao\\Laravel\\ServiceProvider',
-    28 => 'Laravel\\Roster\\RosterServiceProvider',
-    29 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    30 => 'Livewire\\LivewireServiceProvider',
-    31 => 'Carbon\\Laravel\\ServiceProvider',
-    32 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    33 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    34 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    35 => 'Spatie\\Permission\\PermissionServiceProvider',
-    36 => 'App\\Providers\\AppServiceProvider',
-    37 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    28 => 'Laravel\\Reverb\\ReverbServiceProvider',
+    29 => 'Laravel\\Roster\\RosterServiceProvider',
+    30 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    31 => 'Livewire\\LivewireServiceProvider',
+    32 => 'Carbon\\Laravel\\ServiceProvider',
+    33 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    34 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    35 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
+    36 => 'Spatie\\Permission\\PermissionServiceProvider',
+    37 => 'App\\Providers\\AppServiceProvider',
+    38 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'deferred' => 
   array (
@@ -256,6 +259,8 @@
     'validation.presence' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Laravel\\Breeze\\Console\\InstallCommand' => 'Laravel\\Breeze\\BreezeServiceProvider',
+    'Laravel\\Reverb\\ApplicationManager' => 'Laravel\\Reverb\\ApplicationManagerServiceProvider',
+    'Laravel\\Reverb\\Contracts\\ApplicationProvider' => 'Laravel\\Reverb\\ApplicationManagerServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -300,6 +305,9 @@
     array (
     ),
     'Laravel\\Breeze\\BreezeServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Reverb\\ApplicationManagerServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 
