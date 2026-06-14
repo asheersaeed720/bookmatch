@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Actions\BulkActionGroup;
@@ -40,13 +43,13 @@ class UserResource extends Resource
                     ->unique(ignoreRecord: true),
                 Forms\Components\Select::make('role')
                     ->options([
-                        'admin' => 'Admin',
-                        'librarian' => 'Librarian',
-                        'student' => 'Student',
-                        'faculty' => 'Faculty',
+                        UserRole::Admin->value     => 'Admin',
+                        UserRole::Librarian->value => 'Librarian',
+                        UserRole::Student->value   => 'Student',
+                        UserRole::Faculty->value   => 'Faculty',
                     ])
                     ->required()
-                    ->default('student'),
+                    ->default(UserRole::Student->value),
             ]);
     }
 
@@ -64,12 +67,12 @@ class UserResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('role')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'admin' => 'danger',
-                        'librarian' => 'info',
-                        'student' => 'success',
-                        'faculty' => 'warning',
-                        default => 'gray',
+                    ->formatStateUsing(fn (UserRole $state): string => ucfirst($state->value))
+                    ->color(fn (UserRole $state): string => match ($state) {
+                        UserRole::Admin     => 'danger',
+                        UserRole::Librarian => 'info',
+                        UserRole::Student   => 'success',
+                        UserRole::Faculty   => 'warning',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ratings_count')
@@ -109,12 +112,12 @@ class UserResource extends Resource
                         Infolists\Components\TextEntry::make('email'),
                         Infolists\Components\TextEntry::make('role')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
-                                'admin' => 'danger',
-                                'librarian' => 'info',
-                                'student' => 'success',
-                                'faculty' => 'warning',
-                                default => 'gray',
+                            ->formatStateUsing(fn (UserRole $state): string => ucfirst($state->value))
+                            ->color(fn (UserRole $state): string => match ($state) {
+                                UserRole::Admin     => 'danger',
+                                UserRole::Librarian => 'info',
+                                UserRole::Student   => 'success',
+                                UserRole::Faculty   => 'warning',
                             }),
                         Infolists\Components\TextEntry::make('student_id'),
                         Infolists\Components\TextEntry::make('department'),

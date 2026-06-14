@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -55,14 +57,14 @@ class Book extends Model
     protected function averageRating(): Attribute
     {
         return Attribute::make(
-            get: fn () => (float) ($this->ratings()->where('is_approved', true)->avg('rating') ?? 0),
+            get: fn (): float => (float) ($this->ratings()->where('is_approved', true)->avg('rating') ?? 0),
         );
     }
 
     protected function approvedRatingsCount(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ratings()->where('is_approved', true)->count(),
+            get: fn (): int => $this->ratings()->where('is_approved', true)->count(),
         );
     }
 

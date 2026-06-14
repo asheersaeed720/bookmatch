@@ -8,7 +8,7 @@ BookMatch is a university library management system: a catalog of books with bor
 
 ## Stack
 
-- PHP 8.3, Laravel 13, Filament **5** (note: v5 API differs from v3/v4 — `form(Schema $schema)`, actions live under `Filament\Actions\`)
+- PHP 8.5 (8.5.6), Laravel 13, Filament **5** (note: v5 API differs from v3/v4 — `form(Schema $schema)`, actions live under `Filament\Actions\`)
 - Spatie Laravel Permission 8 for roles/permissions
 - Laravel Breeze (Blade + Alpine + Tailwind 3, Vite 8) — server-rendered, **not** Inertia/Livewire SPA
 - **PHPUnit** for tests (not Pest, despite the pest-plugin allow-list entry)
@@ -45,6 +45,8 @@ Roles are tracked in **two parallel places that must be kept in sync**:
 ### Domain models & conventions
 - Core entities: `User`, `Book`, `Genre`, `Rating`, `Borrow`, `Bookmark`, `Recommendation`. A book belongs to a genre; users borrow/rate/bookmark books.
 - Models declare mass-assignment with the PHP-attribute style `#[Fillable([...])]` / `#[Hidden([...])]` (Laravel 13), **not** `$fillable`/`$hidden` properties — follow this when editing models.
+- Role and status columns use PHP backed enums: `App\Enums\UserRole` (for `users.role`) and `App\Enums\BorrowStatus` (for `borrows.status`). Use enum values, never bare strings, when comparing or assigning these fields.
+- All PHP files in `app/` carry `declare(strict_types=1)`.
 - `Book` auto-generates its `slug` on `creating` and uses `slug` as its route key (`getRouteKeyName`).
 - Computed values use `Attribute::make()`: `Book::averageRating` and `approvedRatingsCount` count **only approved ratings**; `Borrow::isOverdue` derives from `status === 'active'` and `due_date`.
 - **Ratings have an approval workflow**: `is_approved` gates whether a rating counts toward a book's average. Staff approve via the `approve-ratings` permission.

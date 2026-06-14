@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources;
 
+use App\Enums\BorrowStatus;
 use App\Filament\Resources\BorrowResource\Pages;
 use App\Models\Book;
 use App\Models\Borrow;
@@ -45,12 +48,12 @@ class BorrowResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('status')
                     ->options([
-                        'active' => 'Active',
-                        'returned' => 'Returned',
-                        'overdue' => 'Overdue',
+                        BorrowStatus::Active->value   => 'Active',
+                        BorrowStatus::Returned->value => 'Returned',
+                        BorrowStatus::Overdue->value  => 'Overdue',
                     ])
                     ->required()
-                    ->default('active'),
+                    ->default(BorrowStatus::Active->value),
             ]);
     }
 
@@ -73,14 +76,14 @@ class BorrowResource extends Resource
                 Tables\Columns\TextColumn::make('due_date')
                     ->date()
                     ->sortable()
-                    ->color(fn (Borrow $record): string => $record->status === 'active' && now()->greaterThan($record->due_date) ? 'danger' : 'gray'),
+                    ->color(fn (Borrow $record): string => $record->status === BorrowStatus::Active && now()->greaterThan($record->due_date) ? 'danger' : 'gray'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'active' => 'primary',
-                        'returned' => 'success',
-                        'overdue' => 'danger',
-                        default => 'gray',
+                    ->formatStateUsing(fn (BorrowStatus $state): string => ucfirst($state->value))
+                    ->color(fn (BorrowStatus $state): string => match ($state) {
+                        BorrowStatus::Active   => 'primary',
+                        BorrowStatus::Returned => 'success',
+                        BorrowStatus::Overdue  => 'danger',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('returned_at')
@@ -91,9 +94,9 @@ class BorrowResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'active' => 'Active',
-                        'returned' => 'Returned',
-                        'overdue' => 'Overdue',
+                        BorrowStatus::Active->value   => 'Active',
+                        BorrowStatus::Returned->value => 'Returned',
+                        BorrowStatus::Overdue->value  => 'Overdue',
                     ]),
             ])
             ->actions([
@@ -101,13 +104,13 @@ class BorrowResource extends Resource
                     ->label('Mark as Returned')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Borrow $record) => $record->status !== 'returned')
+                    ->visible(fn (Borrow $record): bool => $record->status !== BorrowStatus::Returned)
                     ->requiresConfirmation()
                     ->action(function (Borrow $record) {
                         DB::transaction(function () use ($record) {
                             $record->update([
                                 'returned_at' => now(),
-                                'status' => 'returned',
+                                'status' => BorrowStatus::Returned,
                             ]);
                             $record->book?->increment('available_copies');
                         });
