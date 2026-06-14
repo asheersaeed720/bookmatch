@@ -1,4 +1,4 @@
-ARG PHP_VERSION=${PHP_VERSION:-8.3}
+ARG PHP_VERSION=${PHP_VERSION:-8.5}
 
 FROM rajabilal555/php-base:${PHP_VERSION} AS app-setup
 
