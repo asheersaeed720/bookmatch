@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Password::defaults(fn () => Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised());
+        Password::defaults(fn () => Password::min(8)->mixedCase()->numbers()->symbols());
 
         if (Str::startsWith(config('app.url', ''), 'https') || app()->environment('production')) {
             URL::forceScheme('https');
