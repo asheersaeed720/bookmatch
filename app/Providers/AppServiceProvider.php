@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Password::defaults(fn () => Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised());
+
         if (Str::startsWith(config('app.url', ''), 'https') || app()->environment('production')) {
             URL::forceScheme('https');
         }
