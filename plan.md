@@ -1,0 +1,983 @@
+# BookMatch — Phased Development Plan
+
+**University Library Book Recommendation System**
+Laravel 13 · Filament v5 · Livewire v4 · Laragon (PHP 8.5)
+
+> Each phase ends with a **Verification Checkpoint**.
+> Do not move to the next phase until the current one is verified.
+> Each phase has its own prompt section you send to the AI.
+
+---
+
+## Phase 1 — Environment & Project Setup
+
+**Goal:** A working Laravel 13 project running on Laragon, with the database created and basic config done.
+
+### Step 1.1 — Verify Laragon is ready
+
+- Open Laragon, click **Start All**
+- Right-click tray icon → **PHP → Version** → confirm PHP 8.5 is selected
+- Right-click tray → **Terminal** → run:
+
+```bash
+php -v
+# Expected output: PHP 8.5.x ...
+
+mysql -u root -e "SELECT VERSION();"
+# Expected: MySQL 8.x or 9.x
+
+composer -V
+# Expected: Composer version 2.x
+```
+
+### Step 1.2 — Create the Laravel 13 project
+
+```bash
+cd C:\laragon\www
+laravel new bookmatch
+```
+
+When the installer prompts:
+
+| Prompt | Choose |
+|---|---|
+| Starter kit | Laravel Breeze |
+| Breeze stack | Blade with Livewire |
+| Testing | PHPUnit |
+| Database | MySQL |
+| Run migrations? | No (we'll do it after configuring `.env`) |
+
+### Step 1.3 — Configure `.env`
+
+Open `C:\laragon\www\bookmatch\.env` and set:
+
+```env
+APP_NAME=Bookmatch
+APP_URL=http://bookmatch.localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bookmatch
+DB_USERNAME=root
+DB_PASSWORD=
+
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_FROM_ADDRESS="noreply@bookmatch.localhost"
+MAIL_FROM_NAME="Bookmatch Library"
+```
+
+### Step 1.4 — Create the database
+
+In Laragon terminal:
+
+```bash
+mysql -u root -e "CREATE DATABASE bookmatch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+### Step 1.5 — Run initial migrations
+
+```bash
+cd C:\laragon\www\bookmatch
+php artisan migrate
+```
+
+### Step 1.6 — Install Laravel Boost (dev tool)
+
+```bash
+composer require laravel/boost --dev
+php artisan boost:install
+# (Follow prompts to connect to your IDE/agent — VS Code, Cursor, etc.)
+```
+
+### ✅ Checkpoint 1
+
+- Visit `http://bookmatch.localhost` → Laravel welcome page
+- Visit `http://bookmatch.localhost/login` → Breeze login page
+- Run `php artisan --version` → shows Laravel 13.x
+- phpMyAdmin (`http://localhost/phpmyadmin`) shows `bookmatch` database with tables: `users`, `password_reset_tokens`, `sessions`, `cache`, `jobs`
+
+---
+
+## Phase 2 — Database Schema (Migrations)
+
+**Goal:** All 7 custom tables created and verified in the database.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer. I have a fresh Laravel 13
+project named Bookmatch. Create the following migration files only.
+Do not create models yet. Use PHP 8.5+ syntax.
+
+Create migrations for these tables in this order:
+1. Add columns to users table: role (enum: admin,librarian,student,faculty,
+   default student), student_id (nullable string), department (nullable string),
+   avatar (nullable string). Modify the existing users migration.
+
+2. genres — id, name (string), slug (string unique), description (text nullable),
+   timestamps
+
+3. books — id, title, author, isbn (string unique), genre_id (FK → genres),
+   publisher (nullable), published_year (nullable smallint), description (text nullable),
+   cover_image (nullable), total_copies (int default 1), available_copies (int default 1),
+   location_code (nullable), slug (string unique), timestamps
+
+4. ratings — id, user_id (FK → users), book_id (FK → books), rating (tinyint),
+   message (text nullable), is_approved (boolean default false), timestamps.
+   Unique: (user_id, book_id)
+
+5. borrows — id, user_id (FK → users), book_id (FK → books), borrowed_at (datetime),
+   due_date (date), returned_at (datetime nullable),
+   status (enum: active,returned,overdue default active), timestamps
+
+6. bookmarks — id, user_id (FK → users), book_id (FK → books), timestamps.
+   Unique: (user_id, book_id)
+
+7. recommendations — id, user_id (FK → users), book_id (FK → books), score (float),
+   reason_type (enum: collaborative,genre_based,trending), timestamps
+
+Laravel 13 environment on Laragon (Windows). Use Schema::create with Blueprint.
+```
+
+### Step 2.1 — Create and run migrations
+
+```bash
+php artisan migrate
+```
+
+### Step 2.2 — Verify storage link
+
+```bash
+php artisan storage:link
+```
+
+### ✅ Checkpoint 2
+
+- phpMyAdmin shows all 7 tables exist with correct columns
+- No migration errors in terminal
+- `storage/app/public` symlink exists in `public/` folder
+
+---
+
+## Phase 3 — Models & Relationships
+
+**Goal:** All Eloquent models created with correct relationships, fillable fields, and accessors.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+The database migrations already exist and are run. Now create the
+Eloquent models with relationships and accessors. Use PHP 8.5+ syntax
+with typed properties where applicable.
+
+Models needed:
+
+1. User (update existing app/Models/User.php):
+   - Add: role, student_id, department, avatar to fillable
+   - hasMany: Rating, Borrow, Bookmark, Recommendation
+   - Helper method: isAdmin(), isLibrarian()
+
+2. Genre:
+   - fillable: name, slug, description
+   - hasMany: Book
+
+3. Book:
+   - fillable: title, author, isbn, genre_id, publisher, published_year,
+     description, cover_image, total_copies, available_copies, location_code, slug
+   - belongsTo: Genre
+   - hasMany: Rating, Borrow, Bookmark, Recommendation
+   - Accessor: averageRating() — avg of approved ratings
+   - Accessor: approvedRatingsCount() — count of approved ratings
+   - Boot method: auto-generate slug from title on creating
+   - getRouteKeyName(): return 'slug'
+
+4. Rating:
+   - fillable: user_id, book_id, rating, message, is_approved
+   - belongsTo: User, Book
+
+5. Borrow:
+   - fillable: user_id, book_id, borrowed_at, due_date, returned_at, status
+   - belongsTo: User, Book
+   - Accessor: isOverdue() — due_date < today && status === 'active'
+
+6. Bookmark:
+   - fillable: user_id, book_id
+   - belongsTo: User, Book
+
+7. Recommendation:
+   - fillable: user_id, book_id, score, reason_type
+   - belongsTo: User, Book
+
+Environment: Laravel 13, Laragon, PHP 8.5
+```
+
+### ✅ Checkpoint 3
+
+Run in Laragon terminal:
+
+```bash
+php artisan tinker
+>>> App\Models\Genre::count()  // should return 0 (no error)
+>>> App\Models\Book::count()   // should return 0 (no error)
+>>> exit
+```
+
+---
+
+## Phase 4 — Roles, Permissions & Auth Setup
+
+**Goal:** Spatie roles/permissions installed and seeded. Admin user created. Policies registered.
+
+### Step 4.1 — Install Spatie laravel-permission
+
+```bash
+composer require spatie/laravel-permission
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate
+```
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+Spatie laravel-permission is installed and migrated.
+
+Do the following:
+
+1. Add HasRoles trait to app/Models/User.php (from Spatie\Permission\Traits\HasRoles)
+
+2. Create a RolesAndPermissionsSeeder that:
+   - Creates permissions: manage-books, manage-borrows, approve-ratings,
+     rate-books, borrow-books, manage-own-ratings
+   - Creates roles and assigns permissions:
+     * admin     → all permissions
+     * librarian → manage-books, manage-borrows, approve-ratings
+     * student   → rate-books, borrow-books, manage-own-ratings
+     * faculty   → rate-books, borrow-books, manage-own-ratings
+
+3. Create 3 Policies (in app/Policies/):
+   - RatingPolicy: update() and delete() only if $user->id === $rating->user_id
+   - BookPolicy: create/update/delete requires $user->hasRole(['admin','librarian'])
+   - BorrowPolicy: create() requires $book->available_copies > 0
+
+4. Register the policies in app/Providers/AppServiceProvider.php
+   using Gate::policy() in the boot() method.
+
+5. Add the Spatie middleware aliases in bootstrap/app.php:
+   ->withMiddleware(function (Middleware $middleware) {
+       $middleware->alias([
+           'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+           'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+       ]);
+   })
+
+Laravel 13 on Laragon, PHP 8.5.
+```
+
+### Step 4.2 — Run the seeder
+
+```bash
+php artisan db:seed --class=RolesAndPermissionsSeeder
+```
+
+### ✅ Checkpoint 4
+
+```bash
+php artisan tinker
+>>> Spatie\Permission\Models\Role::pluck('name')
+// Expected: ['admin','librarian','student','faculty']
+>>> Spatie\Permission\Models\Permission::count()
+// Expected: 6
+```
+
+---
+
+## Phase 5 — Seeders (Fake Data)
+
+**Goal:** Database populated with realistic test data so you can see and test the full application.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+Models, migrations, and Spatie permissions are set up.
+
+Create the following seeders using Faker:
+
+1. GenreSeeder — 10 genres:
+   Computer Science, Mathematics, Literature, History, Physics,
+   Biology, Engineering, Philosophy, Economics, Arts
+   (auto-generate slug from name using Str::slug)
+
+2. BookSeeder — 100 books:
+   - Distributed across all genres (pick random genre each)
+   - Use Faker for title, author, publisher, description
+   - isbn: unique 13-digit number string
+   - published_year: random between 1980 and 2024
+   - total_copies: random 1–5, available_copies = total_copies
+   - cover_image: null for 30% of books, 'covers/placeholder.jpg' for the rest
+   - slug: auto-generated from title (Str::slug + unique suffix if needed)
+
+3. UserSeeder — create these users (use Hash::make('password') for all):
+   - 1 admin:     name='Admin User', email='admin@library.edu', role='admin'
+   - 2 librarians: role='librarian'
+   - 20 students: role='student', student_id='STU-'.rand(1000,9999),
+     department=random from ['CS','Math','Physics','Biology','Engineering']
+   - After creating each user, assign their Spatie role: $user->assignRole($role)
+
+4. RatingSeeder — 300 ratings:
+   - Random user_id and book_id combinations (use unique pairs)
+   - rating: random 1–5
+   - message: Faker sentence or null (50/50)
+   - is_approved: true (to bootstrap recommendations)
+
+5. Update DatabaseSeeder to call all seeders in order:
+   RolesAndPermissionsSeeder, GenreSeeder, BookSeeder, UserSeeder, RatingSeeder
+
+Laravel 13, Laragon, PHP 8.5. Use Faker via \Illuminate\Support\Facades\DB
+or model factories as appropriate.
+```
+
+### Step 5.1 — Run all seeders
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+### ✅ Checkpoint 5
+
+```bash
+php artisan tinker
+>>> App\Models\Book::count()      // 100
+>>> App\Models\User::count()      // 23 (1 admin + 2 librarians + 20 students)
+>>> App\Models\Rating::count()    // 300
+>>> App\Models\Genre::count()     // 10
+```
+
+Visit phpMyAdmin and browse each table to visually confirm data.
+
+---
+
+## Phase 6 — Filament v5 Admin Panel
+
+**Goal:** Fully working admin panel with all 5 resources and 4 dashboard widgets.
+
+### Step 6.1 — Install Filament v5
+
+```bash
+composer require filament/filament:^5.0
+php artisan filament:install --panels
+# (When asked for panel ID, type: admin)
+php artisan migrate
+```
+
+### Step 6.2 — Create Filament admin user
+
+```bash
+php artisan make:filament-user
+# (Use: admin@library.edu / password)
+```
+
+OR update the `AdminPanelProvider` to use your Spatie role for access:
+
+```php
+->authGuard('web')
+->authorize(fn () => auth()->user()?->hasRole('admin') || auth()->user()?->hasRole('librarian'))
+```
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 + Filament v5 developer working on Bookmatch.
+Filament v5 is installed and the admin panel exists at /admin.
+Models and seeders are complete.
+
+Create the following Filament v5 Resources and Widgets.
+Use Filament v5 syntax (unified Schema system, v5 component names).
+
+RESOURCES:
+
+1. BookResource (app/Filament/Resources/BookResource.php):
+   - Form fields: TextInput(title,author,isbn), Textarea(description),
+     Select(genre_id from Genre model), TextInput(publisher),
+     TextInput(published_year), TextInput(total_copies),
+     TextInput(available_copies), TextInput(location_code),
+     FileUpload(cover_image, disk='public', directory='covers')
+   - Table columns: title, author, genre.name, available_copies,
+     created_at (sortable), average_rating (computed)
+   - Table filters: SelectFilter by genre, Filter by availability (available_copies > 0)
+   - Searchable: title, author, isbn
+   - Full CRUD actions (create, edit, delete, view)
+
+2. UserResource (app/Filament/Resources/UserResource.php):
+   - Table: name, email, role (badge colored by role), ratings_count, borrows_count
+   - Form: TextInput(name, email), Select(role from enum values)
+   - No password field (separate action for that)
+   - View: show count of ratings and borrows for the user
+
+3. RatingResource (app/Filament/Resources/RatingResource.php):
+   - Table: user.name, book.title, rating (star display), is_approved (badge),
+     created_at
+   - Filter: SelectFilter(is_approved: pending/approved)
+   - Actions:
+     * Approve action → sets is_approved=true, fires RatingApproved event
+     * Reject action → deletes the rating, sends notification
+   - Bulk actions: BulkAction approve all selected, BulkAction reject all selected
+
+4. GenreResource (app/Filament/Resources/GenreResource.php):
+   - Form: TextInput(name), TextInput(slug, auto-populated from name),
+     Textarea(description)
+   - Table: name, slug, books_count
+   - Full CRUD
+
+5. BorrowResource (app/Filament/Resources/BorrowResource.php):
+   - Table: user.name, book.title, borrowed_at, due_date, status (badge),
+     returned_at
+   - Filter: SelectFilter(status: active/returned/overdue)
+   - Overdue rows highlighted in red (use ->color() callback on status column
+     or ->extraAttributes() on row)
+   - Action: Mark as Returned → sets returned_at=now(), status='returned',
+     increments book.available_copies
+
+DASHBOARD WIDGETS (app/Filament/Widgets/):
+
+1. StatsOverviewWidget extends BaseWidget:
+   - Stat: Total Books (Book::count())
+   - Stat: Total Users (User::count())
+   - Stat: Ratings This Month (Rating::whereMonth('created_at', now()->month)->count())
+   - Stat: Active Borrows (Borrow::where('status','active')->count())
+
+2. TopBooksTableWidget extends TableWidget:
+   - Query: Book with avg approved rating, order by avg desc, limit 10
+   - Columns: title, author, avg_rating, approved_ratings_count
+
+3. BarChartWidget: Ratings count per genre (use Filament chart widget)
+
+4. LineChartWidget: New user registrations over last 6 months
+
+Register all widgets in AdminPanelProvider.
+
+Laravel 13, Filament v5, Laragon, PHP 8.5.
+```
+
+### ✅ Checkpoint 6
+
+- Visit `http://bookmatch.localhost/admin`
+- Log in with `admin@library.edu` / `password`
+- Dashboard shows 4 stat cards and widgets
+- Books page: 100 books listed, searchable, filterable
+- Users page: 23 users with role badges
+- Ratings page: 300 ratings, approve/reject actions work
+- Genres page: 10 genres
+- Borrows page: empty but no errors
+
+---
+
+## Phase 7 — User-Facing Frontend Pages
+
+**Goal:** All public and authenticated Livewire pages working.
+This is the largest phase — split into sub-steps.
+
+### Step 7A — Routes setup
+
+#### Prompt to send to AI for Step 7A
+
+```text
+Set up routes/web.php for the Bookmatch Laravel 13 application.
+Add these routes (Breeze auth routes are already included via
+require __DIR__.'/auth.php'):
+
+  GET  /              → HomeController (or Livewire full-page component)
+  GET  /books         → Livewire full-page component: BookCatalogue
+  GET  /books/{book:slug} → Livewire full-page component: BookDetail
+  POST /books/{book}/ratings → RatingController@store (auth middleware)
+  DELETE /ratings/{rating} → RatingController@destroy (auth + policy)
+  GET  /dashboard     → Livewire: UserDashboard (auth + verified middleware)
+  GET  /bookmarks     → Livewire: BookmarkPage (auth middleware)
+
+Use Route::middleware(['auth','verified']) group for dashboard.
+Laravel 13, PHP 8.5.
+```
+
+### Step 7B — Home Page
+
+#### Prompt to send to AI for Step 7B
+
+```text
+Create the Home page for Bookmatch (Laravel 13, Livewire v4, Blade, Tailwind CSS).
+
+Create: app/Livewire/HomePage.php + resources/views/livewire/home-page.blade.php
+
+The page (public, no auth required) should show:
+1. Hero section: library name, tagline 'Find your next great read',
+   search bar that redirects to /books?search=...
+2. 'Trending This Week' section: top 5 books by average approved rating
+   in the last 30 days. Show as cards: cover image, title, author,
+   genre badge, star rating display.
+3. 'New Arrivals' section: latest 6 books by created_at. Same card layout.
+
+Cover images: use Storage::url($book->cover_image) if not null,
+otherwise show a placeholder grey box with book title initials.
+
+Use Tailwind CSS classes (already installed via Breeze).
+Laragon, PHP 8.5.
+```
+
+### Step 7C — Book Catalogue
+
+#### Prompt to send to AI for Step 7C
+
+```text
+Create the Book Catalogue page for Bookmatch (Laravel 13, Livewire v4).
+
+Create: app/Livewire/BookCatalogue.php + resources/views/livewire/book-catalogue.blade.php
+
+Features:
+- Public Livewire v4 component
+- Real-time search (wire:model.live) on title, author, isbn
+- Filter by genre (dropdown of all genres)
+- Filter by minimum rating (1–5 stars, dropdown)
+- Sort by: newest (default), title A-Z, highest rated
+- Paginate 12 per page using Livewire pagination (WithPagination trait)
+- Book cards: cover image, title, author, genre badge, avg star rating,
+  availability badge (Available / Out of Stock)
+- Each card links to /books/{book:slug}
+
+PHP 8.5, Tailwind CSS, Laragon.
+```
+
+### Step 7D — Book Detail Page
+
+#### Prompt to send to AI for Step 7D
+
+```text
+Create the Book Detail page for Bookmatch (Laravel 13, Livewire v4).
+
+Create: app/Livewire/BookDetail.php + resources/views/livewire/book-detail.blade.php
+
+The page receives a Book model via mount(Book $book).
+
+Sections:
+1. Book info: cover image, title, author, ISBN, publisher, year,
+   genre badge, location_code, availability badge (Available N copies / Out of Stock),
+   average star rating, total approved ratings count.
+
+2. Borrow button: shown if available_copies > 0 AND user is authenticated.
+   Clicking it calls borrowBook() method which:
+   - Creates a Borrow record (borrowed_at=now, due_date=+14 days, status=active)
+   - Decrements book.available_copies
+   - Fires BookBorrowed event
+   - Shows success flash message
+
+3. Bookmark toggle: heart icon button for authenticated users.
+   Calls toggleBookmark() — creates or deletes Bookmark record.
+   Shows filled heart if bookmarked, outline if not.
+
+4. Reviews section: list of approved ratings for this book.
+   Each review shows: username, star rating (1-5 stars visual),
+   message text, date. Sorted newest first.
+
+5. Write a Review form (only for authenticated users):
+   - If user has NOT rated this book:
+     * Alpine.js interactive star picker (1-5, hover + click)
+     * Textarea for message
+     * Submit button → calls submitRating() → stores Rating,
+       fires RatingSubmitted event, shows 'Review submitted for approval'
+   - If user HAS rated this book:
+     * Show their existing rating with edit (inline) and delete options
+     * Delete calls deleteRating() → removes rating record
+
+PHP 8.5, Tailwind CSS, Alpine.js (already installed), Laragon.
+```
+
+### Step 7E — User Dashboard
+
+#### Prompt to send to AI for Step 7E
+
+```text
+Create the User Dashboard for Bookmatch (Laravel 13, Livewire v4).
+Route: GET /dashboard (auth + verified middleware).
+
+Create: app/Livewire/UserDashboard.php + resources/views/livewire/user-dashboard.blade.php
+
+Sections:
+
+1. Stats bar: Books Rated (user's rating count), Books Borrowed (user's borrow count),
+   Avg Rating Given (avg of user's ratings)
+
+2. 'Recommended For You' — tabbed section with 3 tabs:
+   - Collaborative: recommendations where reason_type='collaborative' for auth user
+   - Genre-Based:   recommendations where reason_type='genre_based'
+   - Trending:      recommendations where reason_type='trending'
+   Each shows book cards (cover, title, author, score).
+   If no recommendations exist yet, show 'Recommendations are being generated daily.'
+
+3. 'My Reviews' — list of auth user's own ratings:
+   - Book title (link to detail page), star rating, message preview,
+     date, edit/delete actions
+   - Edit opens inline form to update rating + message
+   - Delete removes rating
+
+4. 'My Borrows' — borrow history table:
+   - Book title, borrowed_at, due_date, status badge (active/returned/overdue),
+     returned_at (if returned)
+   - Overdue rows highlighted in red
+
+PHP 8.5, Tailwind CSS, Laragon.
+```
+
+### Step 7F — Bookmarks Page
+
+#### Prompt to send to AI for Step 7F
+
+```text
+Create the Bookmarks page for Bookmatch (Laravel 13, Livewire v4).
+Route: GET /bookmarks (auth middleware).
+
+Create: app/Livewire/BookmarkPage.php + resources/views/livewire/bookmark-page.blade.php
+
+Show a grid of books the authenticated user has bookmarked.
+Each card: cover image, title, author, genre badge, star rating.
+Link to book detail page.
+'Remove' button on each card → calls removeBookmark(bookmarkId) → deletes Bookmark.
+If no bookmarks: show friendly empty state message.
+
+PHP 8.5, Tailwind CSS, Laragon.
+```
+
+### ✅ Checkpoint 7
+
+- `http://bookmatch.localhost` → home page with trending + new arrivals
+- `http://bookmatch.localhost/books` → catalogue, search works live
+- Click a book → detail page loads, info correct
+- Log in as a student → can submit a review, see dashboard
+- Dashboard tabs show 'Recommendations coming soon' (no recs yet)
+- Bookmarks page works (add/remove)
+
+---
+
+## Phase 8 — Recommendation Engine
+
+**Goal:** The recommendation service works and the Artisan command populates the recommendations table.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+All models, seeders, and frontend pages are complete.
+
+Create the recommendation engine:
+
+1. app/Services/RecommendationService.php with these methods:
+
+   generateForUser(User $user): void
+   - Runs all 3 strategies
+   - Deletes old recommendations for this user first
+   - Upserts new ones into the recommendations table
+
+   collaborative(User $user): Collection
+   - Find books the user has rated (their rated book IDs)
+   - Find other users who also rated those books with similar ratings (within 1 point)
+   - Get books those similar users rated 4-5 stars
+   - Exclude books the current user has already rated
+   - Return up to 10 books with a calculated score (avg of similar users' ratings)
+
+   genreBased(User $user): Collection
+   - Find the top 3 genres the user has rated highest on average
+   - Get the highest-rated books (avg approved rating) in those genres
+   - Exclude books already rated by the user
+   - Return up to 10 books
+
+   trending(): Collection
+   - Books with the most 4-5 star approved ratings in the last 30 days
+   - Return top 10
+
+2. app/Console/Commands/GenerateRecommendations.php (Artisan command):
+   Signature: recommendations:generate
+   Description: Generate book recommendations for all users
+   Handle: loop through User::all(), call RecommendationService::generateForUser($user)
+   Log progress to console.
+
+3. Register command in routes/console.php:
+   Schedule::command('recommendations:generate')->daily();
+
+4. Also register 2 other scheduled commands in routes/console.php:
+   Schedule::command('borrows:check-overdue')->daily();
+   Schedule::command('borrows:notify-due-soon')->daily();
+
+5. Create app/Console/Commands/CheckOverdueBorrows.php:
+   Signature: borrows:check-overdue
+   Updates borrows where status='active' and due_date < today to status='overdue'
+
+6. Create app/Console/Commands/NotifyDueSoon.php:
+   Signature: borrows:notify-due-soon
+   Finds borrows where status='active' and due_date = tomorrow
+   Fires BorrowDueSoon event for each
+
+Laravel 13, PHP 8.5, Laragon.
+```
+
+### Step 8.1 — Run recommendation command manually
+
+```bash
+php artisan recommendations:generate
+```
+
+### ✅ Checkpoint 8
+
+```bash
+php artisan tinker
+>>> App\Models\Recommendation::count()  // should be > 0
+>>> App\Models\Recommendation::groupBy('reason_type')
+     ->selectRaw('reason_type, count(*) as count')->get()
+// shows counts for collaborative, genre_based, trending
+```
+
+Visit User Dashboard → Recommendation tabs should now show books.
+
+---
+
+## Phase 9 — Events, Notifications & Queues
+
+**Goal:** Email notifications work. Queue processes jobs. All events fire correctly.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+Queue driver is 'database'. Mailpit is running on localhost:1025.
+
+Create Events, Listeners, and Notifications:
+
+EVENTS (app/Events/):
+1. RatingSubmitted — constructor(public Rating $rating)
+2. RatingApproved  — constructor(public Rating $rating)
+3. BookBorrowed    — constructor(public Borrow $borrow)
+4. BorrowDueSoon   — constructor(public Borrow $borrow)
+
+NOTIFICATIONS (app/Notifications/):
+1. RatingApprovedNotification:
+   - via(): ['mail', 'database']
+   - toMail(): subject 'Your review has been published',
+     greeting 'Hello {user name}!',
+     line 'Your review for \"{book title}\" is now live.'
+     action button 'View Book' → book detail URL
+
+2. BorrowDueSoonNotification:
+   - via(): ['mail', 'database']
+   - toMail(): subject 'Book due tomorrow',
+     line 'Your borrowed book \"{book title}\" is due tomorrow ({due_date}).'
+     line 'Please return it to avoid overdue status.'
+
+LISTENERS (app/Listeners/):
+1. SendRatingSubmittedNotification (listens to RatingSubmitted):
+   - Finds all librarians (User::role('librarian')->get())
+   - Sends database notification: 'New rating submitted for {book title} — needs approval'
+   - Implements ShouldQueue
+
+2. SendRatingApprovedNotification (listens to RatingApproved):
+   - Notifies the rating's user via RatingApprovedNotification
+   - Implements ShouldQueue
+
+3. SendBorrowDueSoonNotification (listens to BorrowDueSoon):
+   - Notifies the borrow's user via BorrowDueSoonNotification
+   - Implements ShouldQueue
+
+Register all events + listeners in app/Providers/AppServiceProvider.php:
+use Illuminate\Support\Facades\Event;
+Event::listen(RatingSubmitted::class, SendRatingSubmittedNotification::class);
+etc.
+
+Also ensure php artisan notifications:table migration is run for database notifications.
+
+Laravel 13, PHP 8.5, Laragon.
+```
+
+### Step 9.1 — Create notifications table
+
+```bash
+php artisan notifications:table
+php artisan migrate
+```
+
+### Step 9.2 — Start queue worker in a new terminal tab
+
+```bash
+php artisan queue:work --sleep=3 --tries=3
+```
+
+### ✅ Checkpoint 9
+
+- Submit a new rating as a student → queue job appears in `jobs` table in phpMyAdmin, queue worker processes it
+- Admin approves the rating in Filament → user receives mail notification (check Mailpit at `http://localhost:8025`)
+- Librarian's notification_count goes up in database notifications table
+
+---
+
+## Phase 10 — Testing
+
+**Goal:** All feature tests pass. You have confidence the system works.
+
+### Prompt to send to AI for this phase
+
+```text
+You are an expert Laravel 13 developer working on Bookmatch.
+The application is complete. Write feature tests using PHPUnit
+and RefreshDatabase trait.
+
+Setup: Create a 'bookmatch_test' database in phpMyAdmin.
+Update phpunit.xml to use DB_DATABASE=bookmatch_test.
+
+Write these test classes:
+
+1. tests/Feature/RatingTest.php:
+   - test_authenticated_user_can_submit_rating
+   - test_user_cannot_submit_duplicate_rating (same user, same book)
+   - test_user_can_edit_own_rating
+   - test_user_cannot_edit_others_rating (403 expected)
+   - test_unauthenticated_user_cannot_rate (redirect expected)
+
+2. tests/Feature/AdminRatingApprovalTest.php:
+   - test_admin_can_approve_rating (sets is_approved=true)
+   - test_admin_can_reject_rating (deletes rating)
+   - test_librarian_can_approve_rating
+   - test_student_cannot_approve_rating (403 expected)
+
+3. tests/Feature/RecommendationTest.php:
+   - test_recommendation_service_generates_trending_results
+   - test_recommendation_service_generates_genre_based_results
+   - test_generate_for_user_creates_recommendations
+
+4. tests/Feature/BookCatalogueTest.php:
+   - test_catalogue_returns_books
+   - test_search_by_title_returns_correct_results
+   - test_filter_by_genre_returns_correct_books
+   - test_filter_by_minimum_rating_works
+
+Use factories (create them if they don't exist) for Book, Genre,
+User, Rating models with appropriate fake data.
+Laravel 13, PHP 8.5, Laragon.
+```
+
+### Step 10.1 — Create test database
+
+```bash
+mysql -u root -e "CREATE DATABASE bookmatch_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+### Step 10.2 — Run the tests
+
+```bash
+php artisan test
+```
+
+### ✅ Checkpoint 10
+
+All tests pass (green).
+
+```bash
+php artisan test --coverage  # optional, shows coverage %
+```
+
+---
+
+## Phase 11 — Final Polish & Review
+
+**Goal:** Everything tied together, navigation works, UI is clean, no errors in logs.
+
+### Step 11.1 — Navigation
+
+Update `resources/views/layouts/navigation.blade.php` (Breeze layout):
+
+- Add links: Home, Books, Bookmarks (auth), Dashboard (auth)
+- Show user name + logout in top right when authenticated
+- Admin panel link (`http://bookmatch.localhost/admin`) for admin/librarian roles
+
+### Step 11.2 — Error pages
+
+- Create `resources/views/errors/404.blade.php`
+- Create `resources/views/errors/403.blade.php`
+- (Simple styled pages matching the app design)
+
+### Step 11.3 — Check Laravel logs
+
+```bash
+php artisan pail
+# (Browse the app and watch for any errors)
+```
+
+### Step 11.4 — Full end-to-end smoke test (manual)
+
+- [ ] Visit home page as guest → see trending + new arrivals
+- [ ] Browse catalogue → search + filter work
+- [ ] View book detail → info correct, review form shows for guests as login prompt
+- [ ] Register a new student account → email verification works (check Mailpit)
+- [ ] Log in → submit a rating → 'awaiting approval' message shown
+- [ ] Log in as admin → go to /admin → approve the rating
+- [ ] Check Mailpit → approval email received
+- [ ] Visit book detail → approved review now visible
+- [ ] Add book to bookmarks → appears on /bookmarks page
+- [ ] Run: `php artisan recommendations:generate`
+- [ ] Visit /dashboard → recommendations appear in tabs
+- [ ] Log in as librarian → /admin accessible, student pages accessible too
+
+### ✅ Checkpoint 11 — Project Complete
+
+**Bookmatch is fully functional!**
+
+---
+
+## Quick Reference — Terminal Commands Summary
+
+**Start everything** (run each in separate Laragon terminal tabs):
+
+```bash
+php artisan serve                         # if not using Laragon virtual host
+php artisan queue:work --sleep=3          # Tab 2: queue worker
+php artisan schedule:work                 # Tab 3: scheduler
+php artisan pail                          # Tab 4: log viewer (optional)
+```
+
+**Database:**
+
+```bash
+php artisan migrate:fresh --seed          # full reset + reseed
+php artisan db:seed --class=SomeSeeder    # run single seeder
+```
+
+**Recommendations:**
+
+```bash
+php artisan recommendations:generate      # generate for all users
+```
+
+**Testing:**
+
+```bash
+php artisan test                          # run all tests
+php artisan test --filter=RatingTest      # run one test class
+```
+
+**Filament:**
+
+```bash
+php artisan make:filament-resource Model  # create new resource
+php artisan make:filament-widget Name     # create new widget
+```
+
+**Livewire:**
+
+```bash
+php artisan make:livewire ComponentName   # create Livewire component
+```
+
+---
+
+*End of Phased Development Plan*
